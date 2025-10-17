@@ -1,4 +1,3 @@
-# travelbuddy_bot.py
 
 import os
 import io
@@ -13,11 +12,10 @@ import requests
 import pandas as pd
 import datetime as dt
 
-# ===== Инициализация/логирование =====
 load_dotenv()
-BOT_TOKEN = os.getenv("BOT_TOKEN")  # обязателен
-WORLDNEWS_API_KEY = os.getenv("WORLDNEWS_API_KEY")  # для новостей
-CURRENCY_API_KEY = os.getenv("CURRENCY_API_KEY")    # apilayer currency_data
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+WORLDNEWS_API_KEY = os.getenv("WORLDNEWS_API_KEY")
+CURRENCY_API_KEY = os.getenv("CURRENCY_API_KEY")
 WM_USER_AGENT = os.getenv("WM_USER_AGENT", "TravelBuddyBot/1.0 (+contact: example@example.com)")
 
 logging.basicConfig(
@@ -25,7 +23,6 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 
-# В некоторых средах TeleBot может отсутствовать — ок для офлайн-чека
 try:
     import telebot
     from telebot import types
@@ -34,7 +31,6 @@ except Exception as e:
     logging.warning("TeleBot не инициализирован: %s", e)
     bot = None
 
-# ===== Роль/дисклеймер =====
 ROLE_NAME = "TravelBuddy"
 ROLE_PROMPT = (
     "Ты — ассистент путешествий: помоги выбрать страну/город, покажи погоду, новости, курсы валют, достопримечательности и праздники. "
@@ -42,11 +38,8 @@ ROLE_PROMPT = (
 )
 DISCLAIMER = "ℹ️ Данные из публичных API. Возможны задержки/неточности."
 
-# ===== Пользовательский контекст (in-memory) =====
-# chat_id -> {country, country_code, currency, capital, lat, lon, user_base_currency}
 USER_CTX: Dict[int, Dict[str, Any]] = {}
 
-# ===== Меню =====
 def main_menu_kb():
     if not bot:
         return None
@@ -56,7 +49,6 @@ def main_menu_kb():
     kb.row("🗺️ Достопримечательности", "🎉 Праздники", "🆘 Помощь")
     return kb
 
-# ===== УТИЛИТЫ: гео/страны/валюта =====
 def restcountries_by_name(q: str) -> Optional[dict]:
     url = "https://restcountries.com/v3.1/name/" + requests.utils.quote(q)
     params = {"fields": "name,cca2,capital,currencies,latlng"}
@@ -102,7 +94,6 @@ def get_weather_open_meteo(lat: float, lon: float) -> dict:
     r.raise_for_status()
     return r.json()
 
-# ===== Валюты =====
 def get_fx_quotes_usd(symbols: str) -> dict[str, float]:
     if not CURRENCY_API_KEY:
         raise RuntimeError("CURRENCY_API_KEY не задан. Добавьте ключ в .env")
@@ -136,7 +127,6 @@ def cross_rate(base: str, target: str, usd_quotes: dict[str, float]) -> Optional
         return None
     return u2t / u2b
 
-# ===== Новости (РУ по умолчанию, фолбэк без языка) =====
 def get_worldnews(country_code: str, limit: int = 5, language: Optional[str] = "ru") -> list[dict]:
     if not WORLDNEWS_API_KEY:
         raise RuntimeError("WORLDNEWS_API_KEY не задан. Добавь ключ в .env")
@@ -180,7 +170,6 @@ def get_worldnews(country_code: str, limit: int = 5, language: Optional[str] = "
         items = _fetch(None)
     return items
 
-# ===== Праздники (Nager.Date, без ключа) =====
 def get_next_public_holidays(country_code: str, limit: int = 5) -> list[dict]:
     if not country_code:
         return []
@@ -222,9 +211,8 @@ def fmt_holidays(items: list[dict], country_code: str) -> str:
     lines.append("\n" + DISCLAIMER)
     return "\n".join(lines)
 
-# ===== Вспомогательное: дистанция (haversine) =====
 def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    R = 6371000.0  # м
+    R = 6371000.0
     phi1 = math.radians(lat1)
     phi2 = math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
@@ -236,7 +224,6 @@ def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 def _dist_km(lat1, lon1, lat2, lon2) -> float:
     return _haversine_m(float(lat1), float(lon1), float(lat2), float(lon2)) / 1000.0
 
-# ===== Достопримечательности: ТОЛЬКО Wikipedia =====
 def _wiki_geosearch(lat: float, lon: float, radius_m: int, limit: int, lang: str) -> List[dict]:
     base = f"https://{lang}.wikipedia.org/w/api.php"
     params = {
@@ -317,7 +304,6 @@ def get_attractions(lat: float, lon: float, radius_m: int = 5000, limit: int = 1
         logging.error("Wikipedia EN failed: %s", e)
         return []
 
-# ===== Планировщик из CSV =====
 CSV_EXPECTED_COLS = ["name", "lat", "lon", "duration_min"]
 
 def _normalize_csv(df: pd.DataFrame) -> pd.DataFrame:
@@ -381,7 +367,6 @@ def build_itinerary_from_csv(df: pd.DataFrame, ctx: Dict[str, Any], day_budget_m
     order = []
     cur_lat, cur_lon = start_lat, start_lon
 
-    # Жадный ближайший сосед (с небольшим штрафом за низкий приоритет)
     while len(used) < len(places):
         best_idx, best_score = None, None
         for idx, row in places.iterrows():
@@ -395,7 +380,6 @@ def build_itinerary_from_csv(df: pd.DataFrame, ctx: Dict[str, Any], day_budget_m
         order.append(best_idx)
         cur_lat, cur_lon = places.loc[best_idx, "lat"], places.loc[best_idx, "lon"]
 
-    # Раскладываем по дням
     days: List[List[dict]] = []
     day: List[dict] = []
     budget_left = day_budget_min
@@ -469,13 +453,11 @@ def fmt_itinerary(plan: dict, ctx: Dict[str, Any]) -> str:
     lines.append("\n" + DISCLAIMER)
     return "\n".join(lines)
 
-# ===== Старый CSV-отчёт (оставил на месте — вдруг пригодится в CLI) =====
 def load_csv(path: str) -> pd.DataFrame:
     if not os.path.exists(path):
         raise FileNotFoundError(f"CSV не найден: {path}")
     return pd.read_csv(path)
 
-# ===== ТЕКСТОВЫЕ ФОРМАТТЕРЫ =====
 def fmt_country_summary(meta: dict) -> str:
     name = (meta.get("name") or {}).get("common") or "—"
     code = meta.get("cca2") or "—"
@@ -511,7 +493,7 @@ def fmt_weather(data: dict) -> str:
 def fmt_news(items: list[dict], country_code: str) -> str:
     if not items:
         return f"📰 Новости по стране {country_code}: ничего не найдено за неделю.\n{DISCLAIMER}"
-    lines = [f"📰 <b>Новости ({country_code.upper()})</b>"]  # RU default
+    lines = [f"📰 <b>Новости ({country_code.upper()})</b>"]
     for i, a in enumerate(items, 1):
         date = (a.get("publish_date") or "")[:10]
         src = a.get("source") or ""
@@ -546,7 +528,6 @@ def fmt_attractions(items: list[dict]) -> str:
     lines.append("\n" + DISCLAIMER)
     return "\n".join(lines)
 
-# ===== ХЕНДЛЕРЫ TELEGRAM =====
 if bot:
     @bot.message_handler(commands=["start"])
     def handle_start(message):
@@ -758,7 +739,6 @@ if bot:
         except Exception as e:
             bot.reply_to(message, f"Не удалось загрузить праздники: {e}")
 
-    # ==== Загрузка CSV с местами → авто-план ====
     @bot.message_handler(content_types=["document"])
     def handle_csv_upload(message):
         doc = message.document
@@ -781,7 +761,6 @@ if bot:
                 f"Ошибка: {e}"
             )
 
-    # ==== Кнопки меню ====
     @bot.message_handler(func=lambda m: (m.text or "").strip() in [
         "🎯 Выбрать страну", "🌍 Что выбрано", "📰 Новости", "💱 Курс валют",
         "🌦 Погода", "🗺️ Достопримечательности", "🎉 Праздники", "🆘 Помощь"
@@ -805,14 +784,13 @@ if bot:
         elif t == "🆘 Помощь":
             handle_help(message)
 
-    # ==== Текстовые триггеры (минимум магии) ====
     @bot.message_handler(content_types=["text"])
     def handle_text(message):
         text = (message.text or "").lower()
         if "страна" in text or "поездк" in text:
             bot.reply_to(message, "Используй: <code>/set_destination Greece</code> — и поехали 😎")
             return
-        if any(k in text for k in ["погод", "weather"]):
+        if any(k in text for k in ["погод", "погода", "погоду", "weather"]):
             return handle_weather(message)
         if any(k in text for k in ["новост", "news"]):
             return handle_news(message)
@@ -822,9 +800,12 @@ if bot:
             return handle_sights(message)
         if any(k in text for k in ["праздн", "holiday", "holidays"]):
             return handle_holidays(message)
-        bot.reply_to(message, ROLE_PROMPT + "\n\nПодскажи страну или город, с которых начнём?")
+        bot.reply_to(
+            message,
+            "Я могу помочь с погодой, новостями, валютами или достопримечательностями 🌍\n"
+            "Уточни, что тебя интересует?"
+        )
 
-# ===== CLI режим (опционально — оставить для теста) =====
 def main_cli():
     parser = argparse.ArgumentParser(description="TravelBuddy CLI demo")
     parser.add_argument("--country", default="Japan", help="Страна назначения")
