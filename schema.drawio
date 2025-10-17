@@ -1,0 +1,106 @@
+<mxfile host="65bd71144e">
+    <diagram id="travelbuddy-arch" name="TravelBuddy Architecture">
+        <mxGraphModel dx="682" dy="779" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" background="#ffffff" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="TravelBuddy. Архитектура системы&#xa;" style="text;strokeColor=none;fillColor=none;fontSize=20;fontStyle=1;align=center;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="710" y="10" width="500" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="user" value="Пользователь (Telegram)" style="shape=ellipse;whiteSpace=wrap;html=1;aspect=fixed;perimeter=ellipsePerimeter;fillColor=#dae8fc;strokeColor=#6c8ebf" parent="1" vertex="1">
+                    <mxGeometry x="120" y="160" width="140" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="telegram" value="Telegram Cloud" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656" parent="1" vertex="1">
+                    <mxGeometry x="320" y="180" width="170" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="bot" value="TravelBuddy Bot (Python, pyTelegramBotAPI)" style="swimlane;rounded=1;horizontal=0;childLayout=stackLayout;startSize=28;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="560" y="120" width="540" height="420" as="geometry"/>
+                </mxCell>
+                <mxCell id="router" value="/start, /help, /set_destination, /news, /fx, /weather, /sights, /holidays, CSV-план" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450" parent="bot" vertex="1">
+                    <mxGeometry x="20" y="40" width="500" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="ctx" value="USER_CTX (chat_id → страна, валюта, столица, координаты, базовая валюта)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366" parent="bot" vertex="1">
+                    <mxGeometry x="20" y="110" width="500" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="country" value="Страны: RestCountries" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666" parent="bot" vertex="1">
+                    <mxGeometry x="20" y="170" width="240" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="weather" value="Погода: Open-Meteo (геокодер + прогноз)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666" parent="bot" vertex="1">
+                    <mxGeometry x="280" y="170" width="240" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="news" value="Новости: WorldNewsAPI (RU → fallback)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666" parent="bot" vertex="1">
+                    <mxGeometry x="20" y="230" width="240" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="fx" value="Курсы: apilayer Currency (USD-кроссы)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666" parent="bot" vertex="1">
+                    <mxGeometry x="280" y="230" width="240" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="sights" value="Достопримечательности: Wikipedia (geosearch + extracts)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666" parent="bot" vertex="1">
+                    <mxGeometry x="20" y="290" width="240" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="holidays" value="Праздники: Nager.Date (NextPublicHolidays)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666" parent="bot" vertex="1">
+                    <mxGeometry x="280" y="290" width="240" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="csv" value="CSV-Планировщик: загрузка CSV → маршрутизация по дням" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666" parent="bot" vertex="1">
+                    <mxGeometry x="20" y="350" width="240" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="fmtlog" value="Форматирование &amp; Логирование (emoji, HTML, retry/try-except)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666" parent="bot" vertex="1">
+                    <mxGeometry x="280" y="350" width="240" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="env" value=".env (BOT_TOKEN, WORLDNEWS_API_KEY, CURRENCY_API_KEY, WM_USER_AGENT)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#4a86e8" parent="1" vertex="1">
+                    <mxGeometry x="560" y="560" width="540" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="apis" value="Внешние API" style="swimlane;rounded=1;horizontal=0;startSize=28;fillColor=#f5f5f5;strokeColor=#999999;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="1130" y="120" width="640" height="420" as="geometry"/>
+                </mxCell>
+                <mxCell id="api1" value="RestCountries (страны/валюты/столицы)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#999" parent="apis" vertex="1">
+                    <mxGeometry x="60" y="35" width="520" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="api2" value="Open-Meteo (геокодер + прогноз)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#999" parent="apis" vertex="1">
+                    <mxGeometry x="60" y="95" width="520" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="api3" value="WorldNewsAPI (news, language=ru → fallback)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#999" parent="apis" vertex="1">
+                    <mxGeometry x="60" y="155" width="520" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="api4" value="apilayer Currency (USD→XXX котировки)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#999" parent="apis" vertex="1">
+                    <mxGeometry x="60" y="215" width="520" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="api5" value="Wikipedia API (geosearch, extracts, pageimages)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#999" parent="apis" vertex="1">
+                    <mxGeometry x="60" y="275" width="520" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="api6" value="Nager.Date (NextPublicHolidays)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#999" parent="apis" vertex="1">
+                    <mxGeometry x="60" y="335" width="520" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge1" style="endArrow=classic;strokeColor=#6c8ebf" parent="1" source="user" target="telegram" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge2" style="endArrow=classic;strokeColor=#6c8ebf" parent="1" source="telegram" target="bot" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge3" style="endArrow=classic;strokeColor=#999999" parent="1" source="country" target="api1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge4" style="endArrow=classic;strokeColor=#999999" parent="1" source="weather" target="api2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge5" style="endArrow=classic;strokeColor=#999999" parent="1" source="news" target="api3" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge6" style="endArrow=classic;strokeColor=#999999" parent="1" source="fx" target="api4" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge7" style="endArrow=classic;strokeColor=#999999" parent="1" source="sights" target="api5" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge8" style="endArrow=classic;strokeColor=#999999" parent="1" source="holidays" target="api6" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="csvEdge" value="CSV (список достопримечательностей)" style="endArrow=classic;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff" parent="1" source="user" target="csv" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="envEdge" style="endArrow=classic;dashed=1;strokeColor=#4a86e8" parent="1" source="env" target="bot" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
